@@ -5,7 +5,7 @@ class Selects {
 	
 	protected $_countries = array('UnitedStates'=>'US');
 	
-	public function _CreateDivLists($area, $name, $addName, $clearName, $loadName, $addFromField, $addToField, $divField, $duplicateMessage) {
+	public function _CreateDivLists($area, $name, $addName, $clearName, $loadName, $textNodeName, $validateTextName, $addFromField, $addToField, $divField, $duplicateMessage) {
 		if(isset($_SESSION['regions'])) $regions = $_SESSION['regions']; else $regions = '';
 		echo '<fieldset class="form-group">';
 			echo '<div class="row">';
@@ -30,68 +30,64 @@ class Selects {
 			jQuery(document).ready(function() {
 				<?php echo $loadName; ?>();
 			});
+			function <?php echo $validateTextName; ?>(y) {
+				var re = /^[A-Za-z0-9]+$/;
+				return re.test(String(y).toLowerCase());
+			}
+			function <?php echo $textNodeName; ?>(node, z) {
+				var div = document.createElement("div");
+				div.className = "added-div";
+				div.setAttribute("id", z);
+				var span = document.createElement('span');
+				span.innerHTML = '<button class="remove-button" onclick="return <?php echo $clearName; ?>(' + z + ')">X</button>';
+				var para = document.createElement("P");
+				para.className = "added-text";
+				var textnode = document.createTextNode(z);
+				para.appendChild(textnode);
+				div.appendChild(para);
+				div.appendChild(span);
+				return div;
+			}
 			function <?php echo $loadName; ?>() {
 				var y = "<?php echo $regions; ?>";
 				var node = document.getElementById("<?php echo $divField; ?>");
-				function addTextNode(node, z) {
-					var div = document.createElement("div");
-					div.className = "added-div";
-					div.setAttribute("id", z);
-					var span = document.createElement('span');
-					span.innerHTML = '<button class="remove-button" onclick="return <?php echo $clearName; ?>(' + z + ')">X</button>';
-					var para = document.createElement("P");
-					para.className = "added-text";
-					var textnode = document.createTextNode(z);
-					para.appendChild(textnode);
-					div.appendChild(para);
-					div.appendChild(span);
-					return div;
-				}
 				if(y != '') {
 					var yarr = y.split("_");
 					var add;
 					for(var i=0; i<yarr.length; i++) {
 						console.log(yarr[i]);
-						add = addTextNode(node, yarr[i]);
+						add = <?php echo $textNodeName; ?>(node, yarr[i]);
 						node.appendChild(add);
 					}
 				}
 			}
-			// window.onload = <?php echo $loadName; ?>;
+
 			function <?php echo $addName; ?>() {
 				var x = document.getElementById("<?php echo $addFromField; ?>").value;
 				var z, y = document.getElementById("<?php echo $addToField; ?>").value;
 				var node = document.getElementById("<?php echo $divField; ?>");
-				
-				function addTextNode(node, z) {
-					var div = document.createElement("div");
-					div.className = "added-div";
-					div.setAttribute("id", z);
-					var span = document.createElement('span');
-					span.innerHTML = '<button class="remove-button" onclick="return <?php echo $clearName; ?>(' + z + ')">X</button>';
-					var para = document.createElement("P");
-					para.className = "added-text";
-					var textnode = document.createTextNode(z);
-					para.appendChild(textnode);
-					div.appendChild(para);
-					div.appendChild(span);
-					return div;
-				}
 				if(y == "") {
-					z = x;
-					document.getElementById("<?php echo $addToField; ?>").value = z;
-					var add = addTextNode(node, z);
-					node.appendChild(add);
+					if(<?php echo $validateTextName; ?>(x)) {
+						document.getElementById("<?php echo $addToField; ?>").value = x;
+						var add = <?php echo $textNodeName; ?>(node, x);
+						node.appendChild(add);
+					} else {
+						alert("Use only letters and numbers please. No spaces or special characters.");
+					}
 				} else {
 					var inArray = false;
 					var yarr = y.split("_");
 					for(var i=0; i<yarr.length; i++) { if(yarr[i] == x) inArray = true; }
 					if(inArray) { alert("<?php echo $duplicateMessage; ?>");
 					} else {
-						w = y + "_" + x;
-						document.getElementById("<?php echo $addToField; ?>").value = w;
-						var add = addTextNode(node, x);
-						node.appendChild(add);
+						if(<?php echo $validateTextName; ?>(x)) {
+							w = y + "_" + x;
+							document.getElementById("<?php echo $addToField; ?>").value = w;
+							var add = <?php echo $textNodeName; ?>(node, x);
+							node.appendChild(add);
+						} else {
+							alert("Use only letters and numbers please. No spaces or special characters.");
+						}
 					}
 				}
 			}
@@ -131,6 +127,12 @@ class Selects {
 
 	<!-- Minified CSS -->
 	<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap.min.css">
+	
+	<!-- jQuery -->
+	<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
+
+	<!-- Minified JavaScript -->
+	<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/js/bootstrap.min.js"></script>
 	<style>
 	<?php
 		echo '.add-to-div { clear:float;margin-top:15px;border:1px solid #ccc;border-radius:4px;width:100%;display:block;overflow:auto;padding-bottom:10px;min-height:40px; }';
@@ -153,21 +155,15 @@ class Selects {
 			echo '<fieldset class="form-group" style="margin-bottom:0;">';
 				echo '<label for="states" style="margin:0;padding:0;">U.S. State</label>';
 			echo '</fieldset>';
-			$obj->_CreateDivLists(0, 'state', 'taxRateStateUpload', 'removeTaxRateState', 'loadTaxRateState', 'handling-rate-state-upload', 'handling-rate-state-upload-area', 'handling-rate-state-upload-div', 'That State has already been selected');
+			$obj->_CreateDivLists(0, 'state', 'taxRateStateUpload', 'removeTaxRateStateUpload', 'loadTaxRateStateUpload', 'addTextTaxRateStateUpload', 'validateTextTaxRateStateUpload', 'handling-rate-state-upload', 'handling-rate-state-upload-area', 'handling-rate-state-upload-div', 'That State has already been selected');
 			
 			echo '<fieldset class="form-group" style="margin-bottom:0;">';
 				echo '<label for="states" style="margin:0;padding:0;">Countrys</label>';
 			echo '</fieldset>';
-			$obj->_CreateDivLists(1, 'country', 'taxRateCountryUpdate', 'removeTaxRateCountryUpdate', 'loadTaxRateCountryUpdate', 'handling-rate-country-update', 'handling-rate-country-update-area', 'handling-rate-country-update-div', 'That Country has already been selected');
+			$obj->_CreateDivLists(1, 'country', 'taxRateCountryUpload', 'removeTaxRateCountryUpload', 'loadTaxRateCountryUpload', 'addTextTaxRateCountryUpload', 'validateTextTaxRateCountryUpload', 'handling-rate-country-upload', 'handling-rate-country-upload-area', 'handling-rate-country-upload-div', 'That Country has already been selected');
 		?>
 	</div>
 	<div class="col-md-3">
 	</div>
-	
-	<!-- jQuery -->
-	<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
-
-	<!-- Minified JavaScript -->
-	<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/js/bootstrap.min.js"></script>
 </body>
 </html>
